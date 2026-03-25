@@ -23,7 +23,7 @@ def desc_QR_householder(A_start, b_start):
     n = len(A_start)
 
     A = np.copy(A_start)
-    b= np.copy(b_start)
+    b = np.copy(b_start)
     Q_barat = np.eye(n)
 
     for r in range(n-1):
@@ -94,7 +94,7 @@ def substitutie_inversa(A, b):
 
     return x
 
-def calc_marja(x1, x2):
+def calc_norma(x1, x2):
     n = len(x1)
     suma_patrate = 0.0
 
@@ -103,7 +103,7 @@ def calc_marja(x1, x2):
         suma_patrate += diferenta * diferenta
     return math.sqrt(suma_patrate)
 
-def calc_marja_matrice(M1, M2):
+def calc_norma_matrice(M1, M2):
     n = len(M1)
     suma_patrate = 0.0
     for i in range(n):
@@ -113,7 +113,13 @@ def calc_marja_matrice(M1, M2):
     return math.sqrt(suma_patrate)
 
 def inversare_QR(R, Q):
+    n = len(R)
     A_inv = np.zeros((n,n))
+
+    for i in range(n):
+        if abs(R[i][i]) < eps:
+            print("Eroare, inversa nu poate fi calculata!")
+            return None
 
     for j in range(n):
         b_j = np.zeros(n)
@@ -129,6 +135,7 @@ def inversare_QR(R, Q):
 
 
 if __name__ == "__main__":
+    np.set_printoptions(precision=7)
     # #6 din tema
     n = int(input("Introduceti marimea datelor: "))
     A, s = init_data(n)
@@ -142,12 +149,14 @@ if __name__ == "__main__":
     print(b)
     # #2 din tema
     A_nou, b_nou, Q_t = desc_QR_householder(A,b)
-    print("Matricea A: (noua)")
+    print("Matricea A (R): (noua)")
     print(A_nou)
     print("Vectorul b: (nou)")
     print(b_nou)
     print("Matricea Q: ")
-    print(Q_t)
+    print(Q_t.T)
+    print("Q * Qt")
+    print(np.dot(Q_t,Q_t.T))
     # #3 din tema
     x_householder = substitutie_inversa(A_nou, b_nou)
 
@@ -159,18 +168,24 @@ if __name__ == "__main__":
     print(x_householder)
     print("x-ul librariei:")
     print(x_QR)
-    print("Eroare intre x house si x qr: ")
-    print(calc_marja(x_QR, x_householder))
+    if x_householder is not None:
+        print("Eroare intre x house si x qr: ")
+        print(calc_norma(x_QR, x_householder))
 
-    # #4 din tema
-    print(calc_marja(np.dot(A,x_householder), b)) #prima marja, A init * x - b init
-    print(calc_marja(np.dot(A,x_QR), b)) #A doua, A init * xqr - b init
-    print(calc_marja(x_householder,s)/calc_marja(s, np.zeros(n)))
-    print(calc_marja(x_QR, s) / calc_marja(s, np.zeros(n)))
+        # #4 din tema
+        print("Eroare intre A_init*x_householder si b init: ")
+        print(calc_norma(np.dot(A, x_householder), b)) #prima marja, A init * x - b init
+        print("Eroare intre A_init*x_qr si b init: ")
+        print(calc_norma(np.dot(A, x_QR), b)) #A doua, A init * xqr - b init
+        print("Eroare intre x_householder si s: ")
+        print(calc_norma(x_householder, s) / calc_norma(s, np.zeros(n)))
+        print("Eroare intre x_qr si s: ")
+        print(calc_norma(x_QR, s) / calc_norma(s, np.zeros(n)))
 
     # #5 din tema
     A_inv_householder = inversare_QR(A_nou, Q_t)
     A_inv_lib = np.linalg.inv(A)
-    print("Eroare intre A_inv_house si A_inv_lib: ")
-    print(calc_marja_matrice(A_inv_lib, A_inv_householder))
+    if A_inv_householder is not None:
+        print("Eroare intre A_inv_house si A_inv_lib: ")
+        print(calc_norma_matrice(A_inv_lib, A_inv_householder))
 
