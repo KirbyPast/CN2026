@@ -35,6 +35,7 @@ def solve_sparse_system(file_prefix="1", epsilon=1e-6, k_max=10000):
                 "Eroare: Exista elemente nule (sau < epsilon) pe diagonala principala."
             )
             return
+    print("Nu exista elemente nule pe diagonala principala.")
 
     # 4. Metoda Gauss-Seidel
     x = [0.0] * n
@@ -48,18 +49,21 @@ def solve_sparse_system(file_prefix="1", epsilon=1e-6, k_max=10000):
 
             # Diagonalele p
             if i >= p:
+                #(j < i)
                 sum_val -= d1[i - p] * x[i - p]
             if i + p < n:
-                sum_val -= d1[i] * x[i + p]
+                #(j > i)
+                sum_val -= d1[i] * x_prev[i + p]
 
             # Diagonalele q
             if i >= q:
+                #(j < i)
                 sum_val -= d2[i - q] * x[i - q]
             if i + q < n:
-                sum_val -= d2[i] * x[i + q]
+                #(j > i)
+                sum_val -= d2[i] * x_prev[i + q]
 
             x[i] = sum_val / d0[i]
-
         # Criteriul de oprire
         dx = max(abs(x[i] - x_prev[i]) for i in range(n))
 
@@ -115,4 +119,4 @@ def get_exact_solution(file_prefix, n):
 
 if __name__ == "__main__":
     for i in range(5):
-        solve_sparse_system(file_prefix=str(i + 1), epsilon=1e-6)
+        solve_sparse_system(file_prefix=str(i + 1), epsilon=1e-7)
