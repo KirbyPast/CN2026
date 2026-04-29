@@ -69,77 +69,101 @@ def metoda_olver(coeffs, d_coeffs, dd_coeffs, x0, epsilon, k_max=1000):
 
         x = x_new
 
-def main():
-    P_coeffs = [1.0, -6.0, 11.0, -6.0]
-    epsilon = 1e-6
-
-    P_prim = coeficienti_derivata(P_coeffs)
-    P_secund = coeficienti_derivata(P_prim)
-
-    # Calculam raza intervalului
-    R = calc_r(P_coeffs)
-    print(f"Cautam radacinile in intervalul [-{R:.2f}, {R:.2f}]")
-
-    # Generam puncte de start (x0) in intervalul [-R, R]
-    # Impartim intervalul in 100 de puncte pentru a gasi cat mai multe radacini
-    num_puncte = 100
-    puncte_start = [-R + i * (2 * R / num_puncte) for i in range(num_puncte + 1)]
-
-    radacini_newton = []
-    radacini_olver = []
-
-    # Memoram rezultatele detaliate pentru fisier
-    raport = []
-
-    for x0 in puncte_start:
-        # Testam Newton
-        r_newton, pasi_n = metoda_newton(P_coeffs, P_prim, x0, epsilon)
-        # Testam Olver
-        r_olver, pasi_o = metoda_olver(P_coeffs, P_prim, P_secund, x0, epsilon)
-
-        # Filtram radacinile distincte pentru Newton
-        if r_newton is not None:
-            este_noua = True
-            for rn in radacini_newton:
-                if abs(r_newton - rn) <= epsilon:
-                    este_noua = False
-                    break
-            if este_noua:
-                radacini_newton.append(r_newton)
-                raport.append(f"Newton: Radacina {r_newton:.6f} gasita de la x0={x0:.2f} in {pasi_n} pasi.")
-
-        # Filtram radacinile distincte pentru Olver
-        if r_olver is not None:
-            este_noua = True
-            for ro in radacini_olver:
-                if abs(r_olver - ro) <= epsilon:
-                    este_noua = False
-                    break
-            if este_noua:
-                radacini_olver.append(r_olver)
-                raport.append(f"Olver : Radacina {r_olver:.6f} gasita de la x0={x0:.2f} in {pasi_o} pasi.")
-
-    # Afisare pe ecran
-    print("\n--- Radacini gasite ---")
-    print(f"Metoda Newton (radacini distincte): {[round(r, 4) for r in radacini_newton]}")
-    print(f"Metoda Olver (radacini distincte): {[round(r, 4) for r in radacini_olver]}")
-
-    print("\n--- Comparatie Newton vs Olver ---")
-    for linie in raport:
-        print(linie)
-
-    # Salvare in fisier (doar radacinile distincte se vor memora) [cite: 9, 10]
-    with open("radacini_tema7.txt", "w") as f:
-        f.write("Radacini distincte - Metoda Newton:\n")
-        for r in radacini_newton:
-            f.write(f"{r:.6f}\n")
-
-        f.write("\nRadacini distincte - Metoda Olver:\n")
-        for r in radacini_olver:
-            f.write(f"{r:.6f}\n")
-
-    print("\nRezultatele au fost salvate in 'radacini_tema7.txt'.")
-
-
 if __name__ == "__main__":
-    main()
+    # Definim lista de polinoame din sectiunea Exemple a PDF-ului
+    polinoame = [
+        {
+            "nume": "P1(x) = (x-1)(x-2)(x-3)",
+            "coeffs": [1.0, -6.0, 11.0, -6.0]  # [cite: 82]
+        },
+        {
+            "nume": "P2(x) = (x-2/3)(x-1/7)(x+1)(x-3/2)",
+            "coeffs": [42.0, -55.0, -42.0, 49.0, -6.0]  # [cite: 84]
+        },
+        {
+            "nume": "P3(x) = (x-1)(x-1/2)(x-3)(x-1/4)",
+            "coeffs": [8.0, -38.0, 49.0, -22.0, 3.0]  # [cite: 87]
+        },
+        {
+            "nume": "P4(x) = (x-1)^2 * (x-2)^2 (Radacini duble)",
+            "coeffs": [1.0, -6.0, 13.0, -12.0, 4.0]  # [cite: 90]
+        }
+    ]
+
+    epsilon = 1e-6 # Precizia pentru oprirea algoritmului (calcul)
+    epsilon_distinct = 1e-2 # Precizia mai permisiva pentru filtrarea radacinilor duble (afisare)
+
+    with open("radacini_tema7.txt", "w") as f:
+        for idx, pol in enumerate(polinoame, 1):
+            P_coeffs = pol["coeffs"]
+            print(f"\n{'='*50}\nRezolvare pentru Polinomul {idx}: {pol['nume']}\n{'='*50}")
+            f.write(f"\n--- Polinomul {idx}: {pol['nume']} ---\n")
+
+            P_prim = coeficienti_derivata(P_coeffs)
+            P_secund = coeficienti_derivata(P_prim)
+
+            R = calc_r(P_coeffs)
+            print(f"Cautam radacinile in intervalul [-{R:.2f}, {R:.2f}]")
+
+            num_puncte = 100
+            puncte_start = [-R + i * (2 * R / num_puncte) for i in range(num_puncte + 1)]
+
+            radacini_newton = []
+            radacini_olver = []
+            raport_comparatie = []
+
+            for x0 in puncte_start:
+                # Testam metodele
+                r_newton, pasi_n = metoda_newton(P_coeffs, P_prim, x0, epsilon)
+                r_olver, pasi_o = metoda_olver(P_coeffs, P_prim, P_secund, x0, epsilon)
+
+                # Comparatie pas cu pas pentru radacinile comune gasite de la acelasi x0
+                if r_newton is not None and r_olver is not None:
+                    # Daca ambele converg spre aceeasi radacina reala
+                    if abs(r_newton - r_olver) < epsilon_distinct:
+                        raport_comparatie.append(
+                            f"x0 = {x0:6.2f} | Rădăcină aprox: {r_newton:8.5f} | Pași Newton: {pasi_n:3} | Pași Olver: {pasi_o:3}"
+                        )
+
+                # Filtram radacinile distincte pentru Newton
+                if r_newton is not None:
+                    este_noua = True
+                    for rn in radacini_newton:
+                        if abs(r_newton - rn) <= epsilon_distinct:
+                            este_noua = False
+                            break
+                    if este_noua:
+                        radacini_newton.append(r_newton)
+
+                # Filtram radacinile distincte pentru Olver
+                if r_olver is not None:
+                    este_noua = True
+                    for ro in radacini_olver:
+                        if abs(r_olver - ro) <= epsilon_distinct:
+                            este_noua = False
+                            break
+                    if este_noua:
+                        radacini_olver.append(r_olver)
+
+            # Afisare rezultate polinom curent
+            print("\nRadacini gasite:")
+            print(f"  Newton: {[round(r, 4) for r in radacini_newton]}")
+            print(f"  Olver : {[round(r, 4) for r in radacini_olver]}")
+
+            print("\nComparatie nr. de pasi (extras):")
+            # Afisam doar primele 10 comparatii ca sa nu umplem ecranul inutil
+            for linie in raport_comparatie[:10]:
+                print("  " + linie)
+            if len(raport_comparatie) > 10:
+                print("  ... (restul comparatiilor sunt ascunse)")
+
+            # Salvare in fisier pentru polinomul curent
+            f.write("Radacini distincte - Newton:\n")
+            for r in radacini_newton:
+                f.write(f"{r:.6f}\n")
+
+            f.write("Radacini distincte - Olver:\n")
+            for r in radacini_olver:
+                f.write(f"{r:.6f}\n")
+
+    print("\nRezultatele complete au fost salvate in 'radacini_tema7.txt'.")

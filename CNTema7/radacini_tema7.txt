@@ -1,9 +1,42 @@
-Radacini distincte - Metoda Newton:
-1.000000
-3.000000
-2.000000
 
-Radacini distincte - Metoda Olver:
+--- Polinomul 1: P1(x) = (x-1)(x-2)(x-3) ---
+Radacini distincte - Newton:
+1.000000
+3.000000
+2.000000
+Radacini distincte - Olver:
 1.000000
 2.000000
 3.000000
+
+--- Polinomul 2: P2(x) = (x-2/3)(x-1/7)(x+1)(x-3/2) ---
+Radacini distincte - Newton:
+-1.000000
+1.500000
+0.666667
+0.142857
+Radacini distincte - Olver:
+-1.000000
+0.666667
+1.500000
+0.142857
+
+--- Polinomul 3: P3(x) = (x-1)(x-1/2)(x-3)(x-1/4) ---
+Radacini distincte - Newton:
+0.250000
+0.500000
+1.000000
+3.000000
+Radacini distincte - Olver:
+0.250000
+0.500000
+1.000000
+3.000000
+
+--- Polinomul 4: P4(x) = (x-1)^2 * (x-2)^2 (Radacini duble) ---
+Radacini distincte - Newton:
+0.999999
+1.999999
+Radacini distincte - Olver:
+1.000000
+2.000000

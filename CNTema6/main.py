@@ -80,17 +80,28 @@ def eval_spline(x_bar, x, y, A, h):
     
     return term1 + term2 + bi * x_bar + ci
 
-def solve_homework(x0, xn, n, f, da, db, x_bar, m_values, plot_path: str):
-    x = np.zeros(n + 1)
-    x[0] = x0
-    x[n] = xn
-    if n > 1:
-        x[1:n] = np.sort(np.random.uniform(x0, xn, n - 1))
-    y = f(x)
-    f_x_bar = f(x_bar)
 
-    print(f"--- Rezultate pentru x_bar = {x_bar} ---")
-    print(f"f(x_bar) exact: {f_x_bar:.4f}")
+def solve_homework(x0, xn, n, f, da, db, x_bar, m_values, plot_path: str, x_given=None, y_given=None, f_exact_val=None):
+    # Verificăm dacă datele sunt deja generate/oferite sub formă de tabel
+    if x_given is not None and y_given is not None:
+        x = np.array(x_given)
+        y = np.array(y_given)
+        f_x_bar = f_exact_val
+        x0_plot, xn_plot = x.min(), x.max()
+        print(f"--- Rezultate pentru x_bar = {x_bar} (Date Tabelare) ---")
+    else:
+        # Dacă nu avem date tabelare, generăm nodurile și calculăm y = f(x)
+        x = np.zeros(n + 1)
+        x[0] = x0
+        x[n] = xn
+        if n > 1:
+            x[1:n] = np.sort(np.random.uniform(x0, xn, n - 1))
+        y = f(x)
+        f_x_bar = f(x_bar)
+        x0_plot, xn_plot = x0, xn
+        print(f"--- Rezultate pentru x_bar = {x_bar} ---")
+
+    print(f"f(x_bar) exact/referinta: {f_x_bar:.4f}")
 
     print("\nMetoda celor mai mici patrate:")
     best_a = None
@@ -110,13 +121,22 @@ def solve_homework(x0, xn, n, f, da, db, x_bar, m_values, plot_path: str):
     s_val = eval_spline(x_bar, x, y, A, h)
     print(f"Sf(x_bar)={s_val:.4f}, Eroare={abs(s_val - f_x_bar):.4f}\n")
 
-    x_plot = np.linspace(x0, xn, 100)
-    y_exact = f(x_plot)
+    # Generarea graficului
+    x_plot = np.linspace(x0_plot, xn_plot, 100)
     y_pm = [horner(best_a, xi) for xi in x_plot]
     y_spline = [eval_spline(xi, x, y, A, h) for xi in x_plot]
 
     plt.figure(figsize=(10, 6))
-    plt.plot(x_plot, y_exact, label='f(x) exact', linewidth=2)
+
+    # Dacă avem o funcție continuă f, îi desenăm graficul exact
+    if f is not None:
+        y_exact = f(x_plot)
+        plt.plot(x_plot, y_exact, label='f(x) exact', linewidth=2)
+    else:
+        # Pentru date tabelare, adăugăm doar punctul exact de referință
+        if f_exact_val is not None:
+            plt.scatter([x_bar], [f_exact_val], color='black', marker='x', s=100, label='f(x_bar) referință', zorder=6)
+
     plt.plot(x_plot, y_pm, label=f'Pm(x) m={best_m}', linestyle='--')
     plt.plot(x_plot, y_spline, label='Sf(x) Spline', linestyle=':')
     plt.scatter(x, y, color='red', label='Noduri', zorder=5)
@@ -130,10 +150,27 @@ def solve_homework(x0, xn, n, f, da, db, x_bar, m_values, plot_path: str):
 if __name__ == '__main__':
     np.random.seed(42)
 
-    def f1(x): return x**4 - 12*x**3 + 30*x**2 + 12
+
+    def f1(x): return x ** 4 - 12 * x ** 3 + 30 * x ** 2 + 12
+
+
     print("EXEMPLUL 1")
     solve_homework(0, 2, 10, f1, 0, 8, 1.5, [2, 3, 4, 5], "exemplu1.png")
 
-    def f2(x): return x**3 + 3*x**2 - 5*x + 12
+
+    def f2(x): return x ** 3 + 3 * x ** 2 - 5 * x + 12
+
+
     print("EXEMPLUL 2")
     solve_homework(1, 5, 10, f2, 4, 100, 3.0, [2, 3, 4, 5], "exemplu2.png")
+
+    print("EXEMPLUL 3 (Tabelar)")
+    x_tabelar = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+    y_tabelar = [50.0, 47.0, -2.0, -121.0, -310.0, -545.0]
+
+    solve_homework(
+        x0=None, xn=None, n=None, f=None,
+        da=6, db=-244, x_bar=1.5, m_values=[2, 3, 4, 5],
+        plot_path="exemplu3.png",
+        x_given=x_tabelar, y_given=y_tabelar, f_exact_val=30.3125
+    )
