@@ -1,0 +1,9 @@
+Radacini distincte - Metoda Newton:
+1.000000
+3.000000
+2.000000
+
+Radacini distincte - Metoda Olver:
+1.000000
+2.000000
+3.000000
